@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8f3">
+  <meta name="description" content="Encuentra un paseador de confianza y sigue el paseo de tu perro en tiempo real.">
+  <title>Te Paseo! — Paseos felices</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Te Paseo, inicio">
+      <span class="brand-mark" aria-hidden="true">🐕</span>
+      <span class="brand-name">te paseo<span>!</span></span>
+    </a>
+    <div class="topbar-note"><span class="status-dot"></span> Paseos con seguimiento en vivo</div>
+    <button class="account-switch" id="accountSwitch" type="button" aria-label="Cambiar cuenta">
+      <span class="account-avatar" id="accountAvatar">M</span>
+      <span id="accountSwitchName">Mi cuenta</span>
+      <span aria-hidden="true">⌄</span>
+    </button>
+  </header>
+
+  <nav class="main-nav" aria-label="Navegación principal">
+    <button class="nav-tab active" type="button" data-view="pedido"><span>✚</span> Reservar</button>
+    <button class="nav-tab" type="button" data-view="seguimiento"><span>⌖</span> Mapa</button>
+    <button class="nav-tab" type="button" data-view="historial"><span>◷</span> Paseos anteriores</button>
+    <button class="nav-tab" type="button" data-view="cuenta"><span>♙</span> Mi cuenta</button>
+    <button class="nav-tab" type="button" data-view="marketing"><span>✦</span> Promos</button>
+  </nav>
+
+  <main>
+    <section id="vistaPedido" class="vista">
+      <div class="intro">
+        <div class="eyebrow"><span aria-hidden="true">✦</span> Un paseo a su medida</div>
+        <h1>Un poco de aire<br>fresco les hace bien.</h1>
+        <p>Cuéntanos sobre tu manada. Encontramos a la persona ideal para su próxima aventura.</p>
+        <div class="trust-row">
+          <span><span aria-hidden="true">✓</span> Paseadores verificados</span>
+          <span><span aria-hidden="true">⌖</span> Seguimiento en vivo</span>
+        </div>
+      </div>
+
+      <div class="card order-card">
+        <div class="section-heading">
+          <div class="section-icon" aria-hidden="true">🐾</div>
+          <div>
+            <h2>Arma su paseo</h2>
+            <p>Un paseo a medida para toda la manada</p>
+          </div>
+        </div>
+
+        <div class="dogs-heading">
+          <div><strong>¿Quiénes salen hoy?</strong><small>Hasta 5 perros del mismo hogar</small></div>
+          <button type="button" class="add-dog" id="addDog">＋ Agregar perro</button>
+        </div>
+        <div id="dogsList" class="dogs-list"></div>
+
+        <div class="field-grid single">
+          <div>
+            <label for="dur">Duración</label>
+            <select id="dur">
+              <option value="30">30 minutos</option>
+              <option value="45">45 minutos</option>
+              <option value="60">60 minutos</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="tipoPaseador">Elige a tu paseador</label>
+        <select id="tipoPaseador">
+          <option value="cualquiera">Mejor coincidencia disponible</option>
+          <option value="vip">Paseador VIP · mejor calificación</option>
+          <option value="nuevo">Darle una oportunidad a alguien nuevo</option>
+        </select>
+        <p class="field-caption">Los perfiles VIP tienen nota 4,8 o superior. Los nuevos están comenzando en la plataforma.</p>
+
+        <div class="field-grid">
+          <div>
+            <label for="bolsas">Bolsas extra <span class="label-note">$1.500 c/u</span></label>
+            <input id="bolsas" type="number" min="0" max="5" value="0">
+          </div>
+          <div>
+            <label for="propina">Propina <span class="label-note">opcional</span></label>
+            <input id="propina" type="number" min="0" step="500" value="0">
+          </div>
+        </div>
+
+        <div class="precio" id="precio" aria-live="polite"></div>
+        <p class="form-error" id="errorPedido" role="alert" hidden></p>
+        <button class="go" id="btn" disabled>Pedir paseador</button>
+        <div class="hint location-hint" id="gps" aria-live="polite">
+          <span class="location-icon" aria-hidden="true">⌖</span>
+          <span id="gpsTexto">Obteniendo tu ubicación en tiempo real...</span>
+          <button type="button" class="text-button" id="reintentarGps">Reintentar</button>
+        </div>
+      </div>
+      <p class="page-note">Hecho para que cada paseo termine con una cola feliz. <span aria-hidden="true">♥</span></p>
+    </section>
+
+    <section id="vistaSeguimiento" class="vista" hidden>
+      <div class="map-column">
+        <div class="map-heading">
+          <div>
+            <div class="eyebrow"><span aria-hidden="true">⌖</span> Tu paseo, paso a paso</div>
+            <h1 id="paseoTitulo">Tu paseo en marcha</h1>
+          </div>
+          <div class="live-badge"><span class="status-dot"></span> EN VIVO</div>
+        </div>
+        <div class="map-frame">
+          <div id="map" aria-label="Mapa del paseo y ubicación del paseador"></div>
+          <div class="map-legend"><span>📍</span> Tú <span class="legend-divider"></span><span>🚶</span> Paseador</div>
+        </div>
+      </div>
+
+      <aside class="activity-column">
+        <div class="card activity-card">
+          <div class="section-heading">
+            <div class="section-icon activity-icon" aria-hidden="true">✦</div>
+            <div>
+              <h2>Actividad</h2>
+              <p>Actualizaciones de tu paseo</p>
+            </div>
+          </div>
+          <div id="log" aria-live="polite" aria-relevant="additions"></div>
+        </div>
+        <div class="card receipt-card" id="boleta" style="display:none"></div>
+        <button class="go secondary-go" id="nuevo" hidden>🐕 <span>Pedir otro paseo</span></button>
+      </aside>
+    </section>
+
+    <section id="vistaHistorial" class="vista dashboard-view" hidden>
+      <div class="page-title">
+        <div><div class="eyebrow"><span>◷</span> Recuerdos de la manada</div><h1>Paseos anteriores</h1>
+          <p>Todos los paseos de <strong id="historialOwner"></strong>, en un solo lugar.</p></div>
+        <button type="button" class="text-button clear-history" id="limpiarHistorial" hidden>Limpiar historial</button>
+      </div>
+      <div class="history-grid" id="historialLista"></div>
+      <div class="empty-state" id="historialVacio" hidden><span>🐾</span><h2>La próxima aventura empieza aquí</h2><p>Cuando completes un paseo, aparecerá en este historial.</p><button class="go" type="button" data-view="pedido">Reservar un paseo</button></div>
+    </section>
+
+    <section id="vistaCuenta" class="vista dashboard-view" hidden>
+      <div class="page-title"><div><div class="eyebrow"><span>♙</span> Tu espacio</div><h1>Mi cuenta</h1><p>Administra tu perfil y los compañeros de casa.</p></div></div>
+      <div class="account-layout">
+        <div class="card account-card">
+          <div class="section-heading"><div class="section-icon">👋</div><div><h2>Perfil del hogar</h2><p>La cuenta seleccionada se guarda en este dispositivo</p></div></div>
+          <label for="accountSelect">Cambiar cuenta</label><select id="accountSelect"></select>
+          <label for="ownerName">Nombre</label><input id="ownerName" maxlength="50">
+          <label for="ownerEmail">Correo electrónico</label><input id="ownerEmail" type="email" maxlength="100">
+          <button class="go" type="button" id="saveAccount">Guardar cambios</button>
+          <p class="form-error" id="accountMessage" aria-live="polite" hidden></p>
+        </div>
+        <div class="card account-card">
+          <div class="section-heading"><div class="section-icon">🐶</div><div><h2>La manada</h2><p id="accountDogsCount"></p></div></div>
+          <div id="accountDogs" class="account-dogs"></div>
+          <button type="button" class="add-dog" data-view="pedido">＋ Administrar perros en una reserva</button>
+        </div>
+      </div>
+      <div class="account-footnote">🔒 Tus datos de cuenta y preferencias se guardan localmente en este navegador. Esta es una experiencia de demostración.</div>
+    </section>
+
+    <section id="vistaMarketing" class="vista dashboard-view" hidden>
+      <div class="page-title"><div><div class="eyebrow"><span>✦</span> Beneficios para la manada</div><h1>Un mimo extra para ellos.</h1><p>Promociones de marcas asociadas. Explora y activa un beneficio de prueba.</p></div></div>
+      <div class="marketing-summary"><span>💚</span><div><strong>Marcas que quieren a tus mascotas</strong><small>Ofertas simuladas · No se realizan compras ni cargos</small></div><span class="campaign-count" id="campaignCount">0 interacciones</span></div>
+      <div id="campaigns" class="campaign-grid"></div>
+      <div class="marketing-note">Cada interacción cuenta como clic de campaña en esta demostración de marketing para Te Paseo.</div>
+    </section>
+  </main>
+  <footer class="site-footer">© Te Paseo! <span>·</span> Paseos felices, perros felices.</footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
